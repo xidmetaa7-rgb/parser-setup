@@ -1,38 +1,36 @@
-import puppeteer from 'puppeteer';
 import fs from 'fs';
 
 async function parseChannel(url) {
-    const browser = await puppeteer.launch({
-        headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
-    const page = await browser.newPage();
-    let streamUrl = null;
-
     try {
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
-        await page.setRequestInterception(true);
-        page.on('request', request => {
-            const reqUrl = request.url();
-            if (reqUrl.includes('.m3u8')) {
-                streamUrl = reqUrl;
+        // Делаем вид, что мы обычный браузер Chrome, а не робот
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
             }
-            request.continue();
         });
 
-        console.log(`Открываем страницу: ${url}`);
-        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        if (!response.ok) {
+            console.log(`❌ Сайт ответил статусом: ${response.status}`);
+            return null;
+        }
 
+        const html = await response.text();
+        
+        // Регулярное выражение: ищет всё, что начинается на http(s) и заканчивается на .m3u8
+        const m3u8Regex = /(https?:\/\/[^\s"'`<>]+?\.m3u8[^\s"'`<>]*)/gi;
+        const matches = html.match(m3u8Regex);
+
+        if (matches && matches.length > 0) {
+            // Очищаем ссылку от возможных мусорных символов в конце
+            let streamUrl = matches[0].replace(/\\/g, '');
+            return streamUrl;
+        }
     } catch (error) {
-        console.error(`Ошибка при парсинге страницы:`, error);
-    } finally {
-        await browser.close();
+        console.error(`Ошибка запроса к ${url}:`, error.message);
     }
-
-    return streamUrl;
+    return null;
 }
 
 async function main() {
@@ -42,7 +40,7 @@ async function main() {
         { slug: 'pyatnica', name: 'Пятница', group: 'Развлекательные', tvgId: 'friday' }
     ];
 
-    console.log('Запуск парсера плейлиста...');
+    console.log('Запуск нового текстового парсера...');
     let m3uContent = "#EXTM3U\n";
 
     for (let ch of channels) {
@@ -51,17 +49,17 @@ async function main() {
         const freshStreamUrl = await parseChannel(channelPageUrl);
 
         if (freshStreamUrl) {
-            console.log(`✅ Найдена ссылка для ${ch.name}`);
+            console.log(`✅ Успех! Ссылка для ${ch.name}: ${freshStreamUrl}`);
             m3uContent += `#EXTINF:-1 tvg-id="${ch.tvgId}" group-title="${ch.group}",${ch.name}\n`;
             m3uContent += `${freshStreamUrl}\n`;
         } else {
-            console.log(`❌ Не удалось найти поток для ${ch.name}`);
+            console.log(`❌ Поток для ${ch.name} не найден в коде страницы`);
         }
     }
 
-    // Файл создастся в любом случае под твоим именем, чтобы Git не выдавал ошибку 128
+    // Принудительно записываем файл, чтобы у робота всегда был результат
     fs.writeFileSync('farid.sadikh.m3u', m3uContent);
-    console.log('Файл farid.sadikh.m3u успешно обновлен!');
+    console.log('Готово! Файл farid.sadikh.m3u успешно сохранен на диск.');
 }
 
 main();
