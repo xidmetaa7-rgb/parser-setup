@@ -1,0 +1,41 @@
+name: Auto Update from Smotru TV
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # Запуск каждые 3 часа
+  workflow_dispatch:
+
+jobs:
+  update-list:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    # Устанавливаем зависимости и сам Puppeteer (он автоматически скачает нужный Chromium)
+    - name: Install dependencies
+      run: |
+        npm init -y
+        npm install puppeteer
+
+    # Запуск парсера
+    - name: Run parser script
+      run: node update.js
+
+    # Сохранение изменений в твой репозиторий GitHub
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add playlist.m3u
+        git diff-index --quiet HEAD || git commit -m "Автообновление плейлиста со SmotruTV [skip ci]"
+        git push 
