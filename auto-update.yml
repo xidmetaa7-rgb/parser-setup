@@ -13,26 +13,20 @@ jobs:
       contents: write
 
     steps:
-    # Заменили actions/checkout@v4 на его официальный SHA-хэш для безопасности
-    - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+    # Шаг 1: Скачиваем репозиторий напрямую через Git
+    - name: Clone repository
+      run: |
+        git clone https://xidmetaa7-rgb:${{ secrets.GITHUB_TOKEN }}@github.com/xidmetaa7-rgb/parser-setup.git .
+        git checkout main
 
-    # Заменили actions/setup-node@v4 на его официальный SHA-хэш
-    - name: Set up Node.js
-      uses: actions/setup-node@39225587ea90c25b9104b821694df52290476db4
-      with:
-        node-version: '20'
-
-    - name: Install dependencies
+    # Шаг 2: Устанавливаем библиотеки и запускаем скрипт
+    - name: Install dependencies and Run parser
       run: |
         npm init -y
         npm install puppeteer
+        node update.js
 
-    - name: Run parser script
-      run: node update.js
-
+    # Шаг 3: Сохраняем готовый файл обратно в репозиторий
     - name: Commit and Push changes
       run: |
         git config --global user.name "github-actions[bot]"
