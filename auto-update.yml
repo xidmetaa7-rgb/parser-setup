@@ -1,4 +1,4 @@
-name: Auto Update from Smotru TV
+name: Force Update Smotru TV
 
 on:
   schedule:
@@ -21,19 +21,14 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install dependencies and Run parser
+    - name: Run script
       run: |
-        npm init -y
-        npm install puppeteer
         node update.js
 
     - name: Commit and Push changes
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git remote set-url origin https://xidmetaa7-rgb:${{ secrets.GITHUB_TOKEN }}@github.com/xidmetaa7-rgb/parser-setup.git
-        git add IPTV by Farid Sadikh.m3u
+        git add farid.sadikh.m3u
         git diff-index --quiet HEAD || git commit -m "Автообновление плейлиста [skip ci]"
-        git push origin main
+        git push origin HEAD
