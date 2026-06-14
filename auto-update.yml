@@ -13,24 +13,27 @@ jobs:
       contents: write
 
     steps:
-    # Шаг 1: Скачиваем репозиторий напрямую через Git
-    - name: Clone repository
-      run: |
-        git clone https://xidmetaa7-rgb:${{ secrets.GITHUB_TOKEN }}@github.com/xidmetaa7-rgb/parser-setup.git .
-        git checkout main
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    # Шаг 2: Устанавливаем библиотеки и запускаем скрипт
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
     - name: Install dependencies and Run parser
       run: |
         npm init -y
         npm install puppeteer
         node update.js
 
-    # Шаг 3: Сохраняем готовый файл обратно в репозиторий
     - name: Commit and Push changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git remote set-url origin https://xidmetaa7-rgb:${{ secrets.GITHUB_TOKEN }}@github.com/xidmetaa7-rgb/parser-setup.git
         git add farid.sadikh.m3u
         git diff-index --quiet HEAD || git commit -m "Автообновление плейлиста [skip ci]"
         git push origin main
