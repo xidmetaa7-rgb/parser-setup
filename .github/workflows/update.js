@@ -27,7 +27,7 @@ async function parseChannel(url) {
         await new Promise(resolve => setTimeout(resolve, 5000));
 
     } catch (error) {
-        console.error(`Ошибка при парсинге страницы:`, error);
+        console.error(`Ошибка при парсинге страницы:`, error.message);
     } finally {
         await browser.close();
     }
@@ -45,23 +45,32 @@ async function main() {
     console.log('Запуск парсера плейлиста...');
     let m3uContent = "#EXTM3U\n";
 
-    for (let ch of channels) {
-        const channelPageUrl = `https://smotru.tv/channel/${ch.slug}`; 
-        console.log(`Ищем поток для: ${ch.name}`);
-        const freshStreamUrl = await parseChannel(channelPageUrl);
+    try {
+        for (let ch of channels) {
+            const channelPageUrl = `https://smotru.tv/channel/${ch.slug}`; 
+            console.log(`Ищем поток для: ${ch.name}`);
+            const freshStreamUrl = await parseChannel(channelPageUrl);
 
-        if (freshStreamUrl) {
-            console.log(`✅ Найдена ссылка для ${ch.name}`);
-            m3uContent += `#EXTINF:-1 tvg-id="${ch.tvgId}" group-title="${ch.group}",${ch.name}\n`;
-            m3uContent += `${freshStreamUrl}\n`;
-        } else {
-            console.log(`❌ Не удалось найти поток для ${ch.name}`);
+            if (freshStreamUrl) {
+                console.log(`✅ Найдена ссылка для ${ch.name}`);
+                m3uContent += `#EXTINF:-1 tvg-id="${ch.tvgId}" group-title="${ch.group}",${ch.name}\n`;
+                m3uContent += `${freshStreamUrl}\n`;
+            } else {
+                console.log(`❌ Не удалось найти поток для ${ch.name}`);
+            }
         }
-    }
 
-    // Файл создастся в любом случае под твоим именем, чтобы Git не выдавал ошибку 128
-    fs.writeFileSync('IPTV by Farid Sadikh.m3u', m3uContent);
-    console.log('Файл IPTV by Farid Sadikh.m3u успешно обновлен!');
+        // Сохраняем успешно собранный плейлист
+        fs.writeFileSync('IPTV by Farid Sadikh.m3u', m3uContent);
+        console.log('Файл IPTV by Farid Sadikh.m3u успешно обновлен!');
+
+    } catch (mainError) {
+        console.error('Критическая ошибка в главном цикле:', mainError.message);
+        
+        // Железная страховка для GitHub Actions: создаем файл-заглушку, чтобы шаг сохранения не падал
+        fs.writeFileSync('IPTV by Farid Sadikh.m3u', '#EXTM3U\n');
+        console.log('Создан пустой файл IPTV by Farid Sadikh.m3u из-за ошибки.');
+    }
 }
 
 main();
