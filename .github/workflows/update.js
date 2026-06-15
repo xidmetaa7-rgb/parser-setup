@@ -60,8 +60,8 @@ async function main() {
     }
 
     // Файл создастся в любом случае под твоим именем, чтобы Git не выдавал ошибку 128
-    fs.writeFileSync('farid.sadikh.m3u', m3uContent);
-    console.log('Файл farid.sadikh.m3u успешно обновлен!');
+    fs.writeFileSync('IPTV by Farid Sadikh.m3u', m3uContent);
+    console.log('Файл IPTV by Farid Sadikh.m3u успешно обновлен!');
 }
 
 main();
