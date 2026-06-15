@@ -61,8 +61,8 @@ async function main() {
             });
         }
 
-        fs.writeFileSync('farid.sadikh.m3u', m3uContent);
-        console.log('Файл farid.sadikh.m3u успешно сохранен!');
+        fs.writeFileSync('IPTV by Farid Sadikh.m3u', m3uContent);
+        console.log('Файл IPTV by Farid Sadikh.m3u успешно сохранен!');
 
     } catch (error) {
         console.error('Ошибка при парсинге кода сайта:', error.message);
