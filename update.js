@@ -66,9 +66,8 @@ async function main() {
 
     } catch (error) {
         console.error('Ошибка при парсинге кода сайта:', error.message);
-        // Создаем базовый файл в любом случае, чтобы Git не падал
-        fs.writeFileSync('farid.sadikh.m3u', '#EXTM3U\n');
+        // Создаем ТОТ ЖЕ файл, чтобы GitHub Actions не выдавал ошибку пустого репозитория
+        fs.writeFileSync('IPTV by Farid Sadikh.m3u', '#EXTM3U\n');
     }
-}
 
 main();
